@@ -55,6 +55,8 @@ public class OpenshiftRequestContextFactory  {
     private final String[] operationsProjects;
     private final String kibanaPrefix;
     private String kibanaIndexMode;
+    private String openshiftMasterUrl;
+    private boolean openshiftMasterUrlTrustedCert;
 
     @Inject
     public OpenshiftRequestContextFactory(final Settings settings, final RequestUtils utils, final OpenshiftClientFactory clientFactory) {
@@ -64,6 +66,8 @@ public class OpenshiftRequestContextFactory  {
                 ConfigurationSettings.DEFAULT_OPENSHIFT_OPS_PROJECTS);
         this.kibanaPrefix = settings.get(ConfigurationSettings.KIBANA_CONFIG_INDEX_NAME, ConfigurationSettings.DEFAULT_USER_PROFILE_PREFIX);
         this.kibanaIndexMode = settings.get(ConfigurationSettings.OPENSHIFT_KIBANA_INDEX_MODE, UNIQUE);
+        this.openshiftMasterUrl = settings.get(ConfigurationSettings.OPENSHIFT_MASTER, ConfigurationSettings.DEFAULT_MASTER);
+        this.openshiftMasterUrlTrustedCert = settings.getAsBoolean(ConfigurationSettings.OPENSHIFT_TRUST_CERT, ConfigurationSettings.DEFAULT_TRUST_CERT);
         if(!ArrayUtils.contains(new String [] {UNIQUE, SHARED_OPS, SHARED_NON_OPS}, kibanaIndexMode.toLowerCase())) {
             this.kibanaIndexMode = UNIQUE;
         }
@@ -119,6 +123,7 @@ public class OpenshiftRequestContextFactory  {
             LOGGER.debug("Evaluating request for user '{}' with a {} token", user,
                     (StringUtils.isNotEmpty(token) ? "non-empty" : "empty"));
             LOGGER.debug("Cache has user: {}", cache.hasUser(user, token));
+            LOGGER.debug("Target cluster is {}, trust cert is {}", openshiftMasterUrl, openshiftMasterUrlTrustedCert);
         }
     }
 
@@ -130,7 +135,9 @@ public class OpenshiftRequestContextFactory  {
     private Set<String> listProjectsFor(final String user, final String token) throws Exception {
         Set<String> names = new HashSet<>();
         try {
-            ConfigBuilder builder = new ConfigBuilder().withOauthToken(token);
+            ConfigBuilder builder = new ConfigBuilder().withOauthToken(token)
+                                                       .withMasterUrl(openshiftMasterUrl)
+                                                       .withTrustCerts(openshiftMasterUrlTrustedCert);
             try (OpenShiftClient client = clientFactory.create(builder.build())) {
                 List<Project> projects = client.projects().list().getItems();
                 for (Project project : projects) {

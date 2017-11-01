@@ -16,24 +16,13 @@
 
 package io.fabric8.elasticsearch.plugin;
 
-import org.elasticsearch.common.inject.Inject;
-
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftClient;
 
 public class OpenshiftClientFactory {
-
-    private final PluginSettings settings;
-
-    @Inject
-    public OpenshiftClientFactory(final PluginSettings settings) {
-        this.settings = settings;
-    }
     
     public OpenShiftClient create(Config config) {
-        config.setMasterUrl(settings.getMasterUrl());
-        config.setTrustCerts(settings.isTrustCerts());
         return new DefaultOpenShiftClient(config);
     }
 }

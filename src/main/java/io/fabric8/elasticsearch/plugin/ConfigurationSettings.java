@@ -98,7 +98,7 @@ public interface ConfigurationSettings extends KibanaIndexMode{
     static final String DEFAULT_MASTER = "https://kubernetes.default.svc";
 
     static final String OPENSHIFT_TRUST_CERT = "openshift.trust.certificates";
-    static final boolean DEFAULT_TRUST_CERT = false;
+    static final boolean DEFAULT_TRUST_CERT = true;
 
     static final String OPENSHIFT_KIBANA_REWRITE_ENABLED_FLAG = "openshift.kibana.rewrite.enabled";
 
