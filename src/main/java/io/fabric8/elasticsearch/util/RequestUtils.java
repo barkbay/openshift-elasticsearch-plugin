@@ -38,10 +38,16 @@ public class RequestUtils implements ConfigurationSettings  {
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
     private String proxyUserHeader;
+    private String openshiftMasterUrl;
+    private boolean openshiftMasterUrlTrustedCert;
+    private String openshiftCaPath;
 
     @Inject
     public RequestUtils(final Settings settings) {
         this.proxyUserHeader = settings.get(SEARCHGUARD_AUTHENTICATION_PROXY_HEADER, DEFAULT_AUTH_PROXY_HEADER);
+        this.openshiftMasterUrl = settings.get(ConfigurationSettings.OPENSHIFT_MASTER, ConfigurationSettings.DEFAULT_MASTER);
+        this.openshiftMasterUrlTrustedCert = settings.getAsBoolean(ConfigurationSettings.OPENSHIFT_TRUST_CERT, ConfigurationSettings.DEFAULT_TRUST_CERT);
+        this.openshiftCaPath = settings.get(ConfigurationSettings.OPENSHIFT_CA_PATH, null);
     }
     
     public String getUser(RestRequest request) {
@@ -59,7 +65,14 @@ public class RequestUtils implements ConfigurationSettings  {
     public boolean isOperationsUser(RestRequest request) {
         final String user = getUser(request);
         final String token = getBearerToken(request);
-        ConfigBuilder builder = new ConfigBuilder().withOauthToken(token);
+
+        ConfigBuilder builder = new ConfigBuilder(false).withOauthToken(token)
+                                                        .withMasterUrl(openshiftMasterUrl)
+                                                        .withTrustCerts(openshiftMasterUrlTrustedCert);
+        if (openshiftCaPath != null) {
+            builder.withCaCertFile(openshiftCaPath);
+        }
+
         boolean allowed = false;
         try (NamespacedOpenShiftClient osClient = new DefaultOpenShiftClient(builder.build())) {
             LOGGER.debug("Submitting a SAR to see if '{}' is able to retrieve logs across the cluster", user);

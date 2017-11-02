@@ -39,6 +39,7 @@ public class PluginSettings implements ConfigurationSettings {
     private final Boolean enabled;
     private final String masterUrl;
     private final boolean isTrustCerts;
+    private final String openshiftCaPath;
     
     @Inject
     public PluginSettings(final Settings settings) {
@@ -61,6 +62,7 @@ public class PluginSettings implements ConfigurationSettings {
         this.enabled = settings.getAsBoolean(OPENSHIFT_DYNAMIC_ENABLED_FLAG, OPENSHIFT_DYNAMIC_ENABLED_DEFAULT);
 
         this.masterUrl = settings.get(OPENSHIFT_MASTER, DEFAULT_MASTER);
+        this.openshiftCaPath = settings.get(OPENSHIFT_CA_PATH, null);
         this.isTrustCerts = settings.getAsBoolean(OPENSHIFT_TRUST_CERT, DEFAULT_TRUST_CERT);
 
         LOGGER.info("Using kibanaIndexMode: '{}'", this.kibanaIndexMode);
@@ -107,6 +109,10 @@ public class PluginSettings implements ConfigurationSettings {
 
     public String getMasterUrl() {
         return masterUrl;
+    }
+
+    public String getOpenshiftCaPath() {
+        return openshiftCaPath;
     }
 
     public Boolean isTrustCerts() {
