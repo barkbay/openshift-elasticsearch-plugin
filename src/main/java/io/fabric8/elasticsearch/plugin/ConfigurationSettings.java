@@ -93,7 +93,14 @@ public interface ConfigurationSettings extends KibanaIndexMode{
      */
     static final String OPENSHIFT_ACL_ROLE_STRATEGY = "openshift.acl.role_strategy";
     static final String DEFAULT_ACL_ROLE_STRATEGY = "user";
-    
+
+    static final String OPENSHIFT_MASTER = "openshift.master";
+    static final String DEFAULT_MASTER = "https://kubernetes.default.svc";
+    static final String OPENSHIFT_CA_PATH = "openshift.ca.path";
+
+    static final String OPENSHIFT_TRUST_CERT = "openshift.trust.certificates";
+    static final boolean DEFAULT_TRUST_CERT = true;
+
     static final String OPENSHIFT_KIBANA_REWRITE_ENABLED_FLAG = "openshift.kibana.rewrite.enabled";
 
     
