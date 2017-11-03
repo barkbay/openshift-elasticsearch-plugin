@@ -65,6 +65,7 @@ The following additional parameters can be set in set in `elasticsearch.yml`:
 |*openshift.master*| If Openshift users must be authenticated to a remote cluster, this parameter must contain its URL (default: `https://kubernetes.default.svc`).|
 |*openshift.trust.certificates*| Trust remote Openshift certificate (default: `true`)|
 |*openshift.ca.path*| Absolute file path to the certificate that has to be used to authenticate remote Openshift cluster (default: `empty`)|
+
 *Note*: The `io.fabric8.elasticsearch.kibana.mapping.*` properties are required and must be defined for the plugin to function. A sample file
 may be found in the `samples` folder.
 
