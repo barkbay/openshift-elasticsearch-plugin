@@ -17,6 +17,9 @@
 package io.fabric8.elasticsearch.plugin;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import org.elasticsearch.common.settings.Settings;
 import org.junit.Test;
@@ -35,6 +38,28 @@ public class PluginSettingsTest {
     public void testKibanaIndexModeDefault() {
         PluginSettings plugin = new PluginSettings(settings);
         assertEquals("Exp. the plugin default to make kibana index mode unique", "unique", plugin.getKibanaIndexMode());
+    }
+    
+    @Test
+    public void testRemoteOpenshiftWithDefaultConfiguration() {
+
+        PluginSettings plugin = new PluginSettings(Settings.builder().build());
+        assertEquals("Exp. the correct remote Openshift URL", "https://kubernetes.default.svc", plugin.getMasterUrl());
+        assertNull("Exp. the correct Openshift certificate authority not to be set", plugin.getOpenshiftCaPath());
+        assertTrue("Exp. the correct default trust cert value from configuration is true", plugin.isTrustCerts());
+    }
+    
+    @Test
+    public void testRemoteOpenshift() {
+        final String expectedRemoteOpenshiftUrl = "https://foo.bar:8443";
+        final String expectedOpenshiftCaPath = "/etc/elasticsearch/secret/openshift-ca";
+        final String source = "openshift.master: " + expectedRemoteOpenshiftUrl + "\n"
+                            + "openshift.ca.path: " + expectedOpenshiftCaPath + "\n"
+                            + "openshift.trust.certificates: false";
+        PluginSettings plugin = new PluginSettings(Settings.builder().loadFromSource(source).build());
+        assertEquals("Exp. the correct remote Openshift URL", expectedRemoteOpenshiftUrl, plugin.getMasterUrl());
+        assertEquals("Exp. the correct Openshift certificate authority", expectedOpenshiftCaPath, plugin.getOpenshiftCaPath());
+        assertFalse("Exp. the correct non default trust cert value from configuration", plugin.isTrustCerts());
     }
 
 }
