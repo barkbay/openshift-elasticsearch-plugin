@@ -67,7 +67,7 @@ public class PluginSettings implements ConfigurationSettings {
         this.openshiftCaPath = settings.get(OPENSHIFT_CA_PATH);
         // Do not overwrite default K8S behavior
         if (settings.get(OPENSHIFT_TRUST_CERT) != null) {
-            this.isTrustCerts = settings.getAsBoolean(OPENSHIFT_TRUST_CERT, DEFAULT_TRUST_CERT);
+            this.isTrustCerts = settings.getAsBoolean(OPENSHIFT_TRUST_CERT, true);
         } else {
             this.isTrustCerts = null;
         }
