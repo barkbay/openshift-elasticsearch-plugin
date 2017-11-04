@@ -44,7 +44,7 @@ public class OpenshiftClientFactoryTest {
     public TemporaryFolder certFolder = new TemporaryFolder();
 
     @Test
-    public void testWhenRemoteCAIsNull() throws Exception {
+    public void testWhenRemoteCAIsNotNull() throws Exception {
 
         File tempCaFile = certFolder.newFile("ca.crt");
         Files.write(cert.getBytes(), tempCaFile);
