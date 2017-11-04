@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.fabric8.elasticsearch.plugin.ConfigurationSettings;
+import io.fabric8.elasticsearch.plugin.OpenshiftClientFactory;
 
 public class RequestUtilsTest {
     
@@ -36,8 +37,9 @@ public class RequestUtilsTest {
     
     @Before
     public void setUp() throws Exception {
+        OpenshiftClientFactory clientFactory = mock(OpenshiftClientFactory.class);
         Settings settings = Settings.builder().put(ConfigurationSettings.SEARCHGUARD_AUTHENTICATION_PROXY_HEADER, PROXY_HEADER).build();
-        util = new RequestUtils(settings);
+        util = new RequestUtils(clientFactory, settings);
     }
 
     @Test

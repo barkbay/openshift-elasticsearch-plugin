@@ -17,27 +17,21 @@
 package io.fabric8.elasticsearch.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.rest.RestRequest;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 
-import io.fabric8.elasticsearch.plugin.ConfigurationSettings;
-import io.fabric8.elasticsearch.plugin.KibanaUserReindexFilter;
-import io.fabric8.elasticsearch.plugin.OpenshiftRequestContextFactory;
 import io.fabric8.elasticsearch.plugin.OpenshiftRequestContextFactory.OpenshiftRequestContext;
 import io.fabric8.elasticsearch.plugin.acl.UserProjectCache;
 import io.fabric8.elasticsearch.util.RequestUtils;
@@ -49,23 +43,21 @@ import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.ProjectList;
 import io.fabric8.openshift.api.model.ProjectListBuilder;
-import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 
 public class OpenshiftRequestContextFactoryTest {
 
-    private Settings.Builder settingsBuilder;
+    private Settings.Builder settingsBuilder = Settings.builder();
     private OpenshiftRequestContextFactory factory;
     private OpenshiftRequestContext context;
-    private OpenshiftClientFactory clientFactory;
+    private OpenshiftClientFactory clientFactory = mock(OpenshiftClientFactory.class);
     private RestRequest request;
     private UserProjectCache cache = mock(UserProjectCache.class);
     private RequestUtils utils;
 
     @Before
     public void setUp() throws Exception {
-        settingsBuilder = Settings.builder();
         request = mock(RestRequest.class);
-        clientFactory = mock(OpenshiftClientFactory.class);
         when(request.header(eq(ConfigurationSettings.DEFAULT_AUTH_PROXY_HEADER))).thenReturn("fooUser");
         when(request.header(eq("Authorization"))).thenReturn("Bearer ABC123");
         givenUserIsCashed(true);
@@ -77,7 +69,7 @@ public class OpenshiftRequestContextFactoryTest {
 
     private void givenUserContextFactory(boolean isOperationsUser) {
         Settings settings = settingsBuilder.build();
-        utils = spy(new RequestUtils(settings));
+        utils = spy(new RequestUtils(clientFactory, settings));
         doReturn(isOperationsUser).when(utils).isOperationsUser(any(RestRequest.class));
 
         factory = new OpenshiftRequestContextFactory(settings, utils, clientFactory);
@@ -85,7 +77,7 @@ public class OpenshiftRequestContextFactoryTest {
 
     @SuppressWarnings("unchecked")
     private void givenUserHasProjects() {
-        OpenShiftClient client = mock(OpenShiftClient.class);
+        NamespacedOpenShiftClient client = mock(NamespacedOpenShiftClient.class);
         ClientNonNamespaceOperation<Project, ProjectList, DoneableProject, ClientResource<Project, DoneableProject>> projects = mock(
                 ClientNonNamespaceOperation.class);
         ProjectList projectList = new ProjectListBuilder(false)
@@ -197,25 +189,6 @@ public class OpenshiftRequestContextFactoryTest {
         whenCreatingUserContext();
         assertTrue("Exp. the request context to have a users projects", !context.getProjects().isEmpty());
         assertTrue("Exp. the request context to identify an ops user", context.isOperationsUser());
-    }
-    
-    @Test
-    public void testWhenRemoteCAIsNotNull() throws Exception {
-        settingsBuilder.put(PluginSettings.OPENSHIFT_CA_PATH, "/foo/bar.crt");
-        settingsBuilder.put(PluginSettings.OPENSHIFT_MASTER, "https://foo.bar");
-        settingsBuilder.put(PluginSettings.OPENSHIFT_TRUST_CERT, false);
-
-        givenUserContextFactory(false);
-        givenUserHasProjects();
-        givenUserIsCashed(false);
-        
-        ArgumentCaptor<Config> configCaptor = ArgumentCaptor.forClass(Config.class);
-        whenCreatingUserContext();
-        verify(clientFactory).create(configCaptor.capture());
-        Config k8sConfig = configCaptor.getValue();
-        assertEquals("Exp. the request context to identify an ops user", "/foo/bar.crt", k8sConfig.getCaCertFile());
-        assertEquals("Exp. the request context to identify an ops user", "https://foo.bar/", k8sConfig.getMasterUrl());
-        assertFalse("Exp. the request context to identify an ops user", k8sConfig.isTrustCerts());
     }
 
 }

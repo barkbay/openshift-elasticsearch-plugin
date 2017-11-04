@@ -42,11 +42,10 @@ public class PluginSettingsTest {
     
     @Test
     public void testRemoteOpenshiftWithDefaultConfiguration() {
-
         PluginSettings plugin = new PluginSettings(Settings.builder().build());
-        assertEquals("Exp. the correct remote Openshift URL", "https://kubernetes.default.svc", plugin.getMasterUrl());
-        assertNull("Exp. the correct Openshift certificate authority not to be set", plugin.getOpenshiftCaPath());
-        assertTrue("Exp. the correct default trust cert value from configuration is true", plugin.isTrustCerts());
+        assertNull("Exp. remote Openshift URL is null by default to not override default K8S plugin behaviour", plugin.getMasterUrl());
+        assertNull("Exp. Openshift certificate authority is null by default to not override default K8S plugin behaviour", plugin.getOpenshiftCaPath());
+        assertNull("Exp. default trust cert is null to not override default K8S plugin behaviour", plugin.isTrustCerts());
     }
     
     @Test

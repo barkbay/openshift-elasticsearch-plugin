@@ -19,6 +19,8 @@ package io.fabric8.elasticsearch.plugin;
 import static io.fabric8.elasticsearch.plugin.acl.SearchGuardSyncStrategyFactory.PROJECT;
 import static io.fabric8.elasticsearch.plugin.acl.SearchGuardSyncStrategyFactory.USER;
 
+import java.util.Set;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.elasticsearch.common.inject.Inject;
 import org.elasticsearch.common.logging.ESLogger;
@@ -38,7 +40,7 @@ public class PluginSettings implements ConfigurationSettings {
     private final String kbnVersionHeader;
     private final Boolean enabled;
     private final String masterUrl;
-    private final boolean isTrustCerts;
+    private final Boolean isTrustCerts;
     private final String openshiftCaPath;
     
     @Inject
@@ -61,9 +63,14 @@ public class PluginSettings implements ConfigurationSettings {
         this.kbnVersionHeader = settings.get(KIBANA_VERSION_HEADER, DEFAULT_KIBANA_VERSION_HEADER);
         this.enabled = settings.getAsBoolean(OPENSHIFT_DYNAMIC_ENABLED_FLAG, OPENSHIFT_DYNAMIC_ENABLED_DEFAULT);
 
-        this.masterUrl = settings.get(OPENSHIFT_MASTER, DEFAULT_MASTER);
-        this.openshiftCaPath = settings.get(OPENSHIFT_CA_PATH, null);
-        this.isTrustCerts = settings.getAsBoolean(OPENSHIFT_TRUST_CERT, DEFAULT_TRUST_CERT);
+        this.masterUrl = settings.get(OPENSHIFT_MASTER);
+        this.openshiftCaPath = settings.get(OPENSHIFT_CA_PATH);
+        // Do not overwrite default K8S behavior
+        if (settings.get(OPENSHIFT_TRUST_CERT) != null) {
+            this.isTrustCerts = settings.getAsBoolean(OPENSHIFT_TRUST_CERT, DEFAULT_TRUST_CERT);
+        } else {
+            this.isTrustCerts = null;
+        }
 
         LOGGER.info("Using kibanaIndexMode: '{}'", this.kibanaIndexMode);
         LOGGER.debug("searchGuardIndex: {}", this.searchGuardIndex);
