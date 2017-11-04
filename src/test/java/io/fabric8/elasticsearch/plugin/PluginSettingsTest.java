@@ -39,7 +39,7 @@ public class PluginSettingsTest {
         PluginSettings plugin = new PluginSettings(settings);
         assertEquals("Exp. the plugin default to make kibana index mode unique", "unique", plugin.getKibanaIndexMode());
     }
-    
+
     @Test
     public void testRemoteOpenshiftWithDefaultConfiguration() {
         PluginSettings plugin = new PluginSettings(Settings.builder().build());
@@ -47,7 +47,7 @@ public class PluginSettingsTest {
         assertNull("Exp. Openshift certificate authority is null by default to not override default K8S plugin behaviour", plugin.getOpenshiftCaPath());
         assertNull("Exp. default trust cert is null to not override default K8S plugin behaviour", plugin.isTrustCerts());
     }
-    
+
     @Test
     public void testRemoteOpenshift() {
         final String expectedRemoteOpenshiftUrl = "https://foo.bar:8443";

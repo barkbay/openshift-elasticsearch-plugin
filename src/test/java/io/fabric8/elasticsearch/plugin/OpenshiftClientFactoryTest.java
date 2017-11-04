@@ -18,7 +18,7 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 
 public class OpenshiftClientFactoryTest {
-    
+
     private final String cert = 
             "-----BEGIN CERTIFICATE-----\n"
           + "MIIC0DCCAbigAwIBAgIBATANBgkqhkiG9w0BAQsFADAZMRcwFQYDVQQDEw5sb2dn\n"
@@ -38,23 +38,23 @@ public class OpenshiftClientFactoryTest {
           +  "Uk4XsS8F+8hOE3zaHbqKbxRSqxnNqBI+UM+nQc1i3Qh2CXy8jgdVTjxWstDN/IHN\n"
           +  "Y6RrKw==                                                        \n"
           +  "-----END CERTIFICATE-----";
-    
+
     // We need a temorary folder because K8S plugin check if CA file exists in constructor
     @Rule
     public TemporaryFolder certFolder = new TemporaryFolder();
-    
+
     @Test
     public void testWhenRemoteCAIsNull() throws Exception {
-        
+
         File tempCaFile = certFolder.newFile("ca.crt");
         Files.write(cert.getBytes(), tempCaFile);
-        
+
         final Config config = (new ConfigBuilder()).build();
         final PluginSettings pluginSettings = mock(PluginSettings.class);
         when(pluginSettings.getOpenshiftCaPath()).thenReturn(tempCaFile.getAbsolutePath());
         when(pluginSettings.getMasterUrl()).thenReturn("https://foo.bar");
         when(pluginSettings.isTrustCerts()).thenReturn(false);
-        
+
         OpenshiftClientFactory clientFactory = new OpenshiftClientFactory(pluginSettings);
         final NamespacedOpenShiftClient openShiftClient = clientFactory.create(config);
         final Config k8sConfig = openShiftClient.getConfiguration();

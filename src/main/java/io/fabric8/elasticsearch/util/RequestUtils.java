@@ -38,7 +38,7 @@ public class RequestUtils implements ConfigurationSettings  {
     public static final String AUTHORIZATION_HEADER = "Authorization";
 
     private String proxyUserHeader;
-    
+
     private final OpenshiftClientFactory clientFactory;
 
     @Inject

@@ -27,14 +27,14 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 public class OpenshiftClientFactory {
     
     private static final ESLogger LOGGER = Loggers.getLogger(OpenshiftClientFactory.class);
-    
+
     private final PluginSettings settings;
-    
+
     @Inject
     public OpenshiftClientFactory(PluginSettings settings) {
         this.settings = settings;
     }
-    
+
     public NamespacedOpenShiftClient create(Config config) {
         if (settings.getMasterUrl() != null) {
             config.setMasterUrl(settings.getMasterUrl());

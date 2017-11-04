@@ -95,7 +95,6 @@ public interface ConfigurationSettings extends KibanaIndexMode{
     static final String DEFAULT_ACL_ROLE_STRATEGY = "user";
 
     static final String OPENSHIFT_MASTER = "openshift.master";
-    static final String DEFAULT_MASTER = "https://kubernetes.default.svc";
     static final String OPENSHIFT_CA_PATH = "openshift.ca.path";
 
     static final String OPENSHIFT_TRUST_CERT = "openshift.trust.certificates";
