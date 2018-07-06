@@ -83,7 +83,7 @@ public class RequestUtils implements ConfigurationSettings  {
         }
         return "";
     }
-    
+
     public boolean isClientCertAuth(final ThreadContext threadContext) {
         return threadContext != null && StringUtils.isNotEmpty(threadContext.getTransient("_sg_ssl_transport_principal"));
     }

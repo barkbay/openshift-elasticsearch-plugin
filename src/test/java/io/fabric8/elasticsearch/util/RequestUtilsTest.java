@@ -17,6 +17,7 @@
 package io.fabric8.elasticsearch.util;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.fabric8.elasticsearch.plugin.ConfigurationSettings;
+import io.fabric8.elasticsearch.plugin.OpenshiftClientFactory;
 import io.fabric8.elasticsearch.plugin.OpenshiftRequestContextFactory;
 import io.fabric8.elasticsearch.plugin.OpenshiftRequestContextFactory.OpenshiftRequestContext;
 import io.fabric8.elasticsearch.plugin.PluginSettings;
@@ -43,9 +45,10 @@ public class RequestUtilsTest {
     
     @Before
     public void setUp() throws Exception {
+        OpenshiftClientFactory clientFactory = mock(OpenshiftClientFactory.class);
         Settings settings = Settings.builder().put(ConfigurationSettings.SEARCHGUARD_AUTHENTICATION_PROXY_HEADER, PROXY_HEADER).build();
         PluginSettings pluginSettings = new PluginSettings(settings);
-        util = new RequestUtils(pluginSettings, null);
+        util = new RequestUtils(pluginSettings, clientFactory);
     }
 
     @Test

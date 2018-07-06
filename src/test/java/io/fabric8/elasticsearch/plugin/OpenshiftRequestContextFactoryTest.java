@@ -36,8 +36,6 @@ import org.elasticsearch.rest.RestRequest;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.fabric8.elasticsearch.plugin.ConfigurationSettings;
-import io.fabric8.elasticsearch.plugin.OpenshiftRequestContextFactory;
 import io.fabric8.elasticsearch.plugin.OpenshiftRequestContextFactory.OpenshiftRequestContext;
 import io.fabric8.elasticsearch.util.RequestUtils;
 import io.fabric8.elasticsearch.util.TestRestRequest;
@@ -49,7 +47,7 @@ import io.fabric8.openshift.api.model.Project;
 import io.fabric8.openshift.api.model.ProjectBuilder;
 import io.fabric8.openshift.api.model.ProjectList;
 import io.fabric8.openshift.api.model.ProjectListBuilder;
-import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 
 public class OpenshiftRequestContextFactoryTest {
 
@@ -78,7 +76,7 @@ public class OpenshiftRequestContextFactoryTest {
 
     @SuppressWarnings("unchecked")
     private void givenUserHasProjects() {
-        OpenShiftClient client = mock(OpenShiftClient.class);
+        NamespacedOpenShiftClient client = mock(NamespacedOpenShiftClient.class);
         ClientNonNamespaceOperation<Project, ProjectList, DoneableProject, ClientResource<Project, DoneableProject>> projects = mock(
                 ClientNonNamespaceOperation.class);
         ProjectList projectList = new ProjectListBuilder(false)

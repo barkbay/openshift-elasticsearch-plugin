@@ -16,13 +16,37 @@
 
 package io.fabric8.elasticsearch.plugin;
 
+import org.apache.logging.log4j.Logger;
+import org.elasticsearch.common.inject.Inject;
+import org.elasticsearch.common.logging.Loggers;
+
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
-import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 
 public class OpenshiftClientFactory {
 
-    public OpenShiftClient create(Config config) {
+    private static final Logger LOGGER = Loggers.getLogger(OpenshiftClientFactory.class);
+
+    private final PluginSettings settings;
+
+    @Inject
+    public OpenshiftClientFactory(PluginSettings settings) {
+        this.settings = settings;
+    }
+
+    public NamespacedOpenShiftClient create(Config config) {
+        if (settings.getMasterUrl() != null) {
+            config.setMasterUrl(settings.getMasterUrl());
+        }
+        if (settings.isTrustCerts() != null) {
+            config.setTrustCerts(settings.isTrustCerts());
+        }
+        if (settings.getOpenshiftCaPath() != null) {
+            config.setCaCertFile(settings.getOpenshiftCaPath());
+        }
+        LOGGER.debug("Target cluster is {}, trust cert is {}, ca path is {}",
+                config.getMasterUrl(), config.isTrustCerts(), config.getCaCertFile());
         return new DefaultOpenShiftClient(config);
     }
 }
