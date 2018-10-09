@@ -48,6 +48,12 @@ public class OpenshiftAPIService {
     private static final String CONTENT_TYPE = "Content-Type";
     private static final String APPLICATION_JSON = "application/json";
     private static final Logger LOGGER = Loggers.getLogger(OpenshiftAPIService.class);
+
+    private final PluginSettings settings;
+
+    public OpenshiftAPIService(PluginSettings settings) {
+        this.settings = settings;
+    }
     
     public String userName(final String token) {
         Response response = null;
@@ -141,8 +147,21 @@ public class OpenshiftAPIService {
         return false;
     }
     
-    private DefaultOpenShiftClient buildClient(final String token) {
+    DefaultOpenShiftClient buildClient(final String token) {
         Config config = new ConfigBuilder().withOauthToken(token).build();
+
+        if (settings.getMasterUrl() != null) {
+            config.setMasterUrl(settings.getMasterUrl());
+        }
+        if (settings.isTrustCerts() != null) {
+            config.setTrustCerts(settings.isTrustCerts());
+        }
+        if (settings.getOpenshiftCaPath() != null) {
+            config.setCaCertFile(settings.getOpenshiftCaPath());
+        }
+        LOGGER.debug("Target cluster is {}, trust cert is {}, ca path is {}",
+            config.getMasterUrl(), config.isTrustCerts(), config.getCaCertFile());
+
         return new DefaultOpenShiftClient(config);
     }
 }

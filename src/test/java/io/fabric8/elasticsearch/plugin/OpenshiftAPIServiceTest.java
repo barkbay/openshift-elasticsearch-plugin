@@ -21,6 +21,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.elasticsearch.common.settings.Settings;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,11 +37,15 @@ public class OpenshiftAPIServiceTest {
 
     @Rule
     public OpenShiftServer apiServer = new OpenShiftServer();
-    private OpenshiftAPIService service = new OpenshiftAPIService();
+
+    private final PluginSettings pluginSettings = new PluginSettings(Settings.EMPTY);
+    private final OpenshiftAPIService service = new OpenshiftAPIService(pluginSettings);
+
+
 
     @Before
     public void setup() {
-        final String basedir = System.getProperty("project.basedir");
+        final String basedir = System.getProperty("basedir");
         final String password = "changeit";
         final String keyStore = basedir + "/src/it/resources/keystore.jks";
         final String masterUrl = apiServer.getMockServer().url("/").toString();

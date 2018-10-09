@@ -88,7 +88,7 @@ public class OpenShiftElasticSearchPlugin extends Plugin implements Configuratio
         final PluginSettings pluginSettings = new PluginSettings(settings);
         final IndexMappingLoader indexMappingLoader = new IndexMappingLoader(settings);
         final PluginClient pluginClient = new PluginClient(client, threadPool.getThreadContext());
-        final OpenshiftAPIService apiService = new OpenshiftAPIService();
+        final OpenshiftAPIService apiService = new OpenshiftAPIService(pluginSettings);
         final RequestUtils requestUtils = new RequestUtils(pluginSettings, apiService);
         final OpenshiftRequestContextFactory contextFactory = new OpenshiftRequestContextFactory(settings, requestUtils,
                 apiService);
@@ -216,6 +216,9 @@ public class OpenShiftElasticSearchPlugin extends Plugin implements Configuratio
         settings.add(Setting.boolSetting("openshift.operations.allow_cluster_reader", false, Property.NodeScope));
         settings.add(Setting.simpleString("openshift.kibana.index.mode", Property.NodeScope));
         settings.add(Setting.simpleString(OPENSHIFT_ACL_ROLE_STRATEGY, Property.NodeScope));
+        settings.add(Setting.simpleString(OPENSHIFT_MASTER_URL, Property.NodeScope));
+        settings.add(Setting.simpleString(OPENSHIFT_CA_PATH, Property.NodeScope));
+        settings.add(Setting.simpleString(OPENSHIFT_TRUST_CERT, Property.NodeScope));
         return settings;
     }
 
