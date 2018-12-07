@@ -71,8 +71,9 @@ public class OpenshiftClientFactoryTest {
         when(pluginSettings.getMasterUrl()).thenReturn("https://foo.bar");
         when(pluginSettings.isTrustCerts()).thenReturn(false);
 
-        OpenshiftAPIService openshiftAPIService = new OpenshiftAPIService(pluginSettings);
-        final NamespacedOpenShiftClient openShiftClient = openshiftAPIService.buildClient("foo");
+        OpenshiftAPIService.OpenShiftClientFactory factory = new OpenshiftAPIService.OpenShiftClientFactory(){};
+        
+        final NamespacedOpenShiftClient openShiftClient = factory.buildClient(pluginSettings, "foo");
         final Config k8sConfig = openShiftClient.getConfiguration();
 
         assertEquals("Exp. the CA file path to be loaded by K8S plugin", tempCaFile.getAbsolutePath(), k8sConfig.getCaCertFile());

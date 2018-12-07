@@ -22,10 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.Logger;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.ElasticsearchSecurityException;
 import org.elasticsearch.common.logging.Loggers;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.rest.RestStatus;
@@ -41,6 +43,7 @@ import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okio.Buffer;
 
 public class OpenshiftAPIService {
     
@@ -49,15 +52,21 @@ public class OpenshiftAPIService {
     private static final String APPLICATION_JSON = "application/json";
     private static final Logger LOGGER = Loggers.getLogger(OpenshiftAPIService.class);
 
+    private final OpenShiftClientFactory factory;
     private final PluginSettings settings;
 
     public OpenshiftAPIService(PluginSettings settings) {
+        this(new OpenShiftClientFactory(){}, settings);
+    }
+    
+    public OpenshiftAPIService(OpenShiftClientFactory factory, PluginSettings settings) {
+        this.factory = factory;
         this.settings = settings;
     }
     
     public String userName(final String token) {
         Response response = null;
-        try (DefaultOpenShiftClient client = buildClient(token)) {
+        try (DefaultOpenShiftClient client = factory.buildClient(settings, token)) {
             Request okRequest = new Request.Builder()
                     .url(client.getMasterUrl() + "apis/user.openshift.io/v1/users/~")
                     .header(ACCEPT, APPLICATION_JSON)
@@ -78,7 +87,7 @@ public class OpenshiftAPIService {
     }
     
     public Set<Project> projectNames(final String token){
-        try (DefaultOpenShiftClient client = buildClient(token)) {
+        try (DefaultOpenShiftClient client = factory.buildClient(settings, token)) {
             Request request = new Request.Builder()
                 .url(client.getMasterUrl() + "apis/project.openshift.io/v1/projects")
                 .header(ACCEPT, APPLICATION_JSON)
@@ -119,49 +128,88 @@ public class OpenshiftAPIService {
      */
     public boolean localSubjectAccessReview(final String token, 
             final String project, final String verb, final String resource, final String resourceAPIGroup, final String [] scopes) {
-        try (DefaultOpenShiftClient client = buildClient(token)) {
+        try (DefaultOpenShiftClient client = factory.buildClient(settings, token)) {
             XContentBuilder payload = XContentFactory.jsonBuilder()
                 .startObject()
-                    .field("kind","LocalSubjectAccessReview")
+                    .field("kind","SubjectAccessReview")
                     .field("apiVersion","authorization.openshift.io/v1")
                     .field("verb", verb)
-                    .field("resourceAPIGroup", resourceAPIGroup)
+                    .array("scopes", scopes);
+            if(resource.startsWith("/")) {
+                payload.field("isNonResourceURL", Boolean.TRUE)
+                    .field("path", resource);
+            } else {
+                payload.field("resourceAPIGroup", resourceAPIGroup)
                     .field("resource", resource)
-                    .field("namespace", project)
-                    .array("scopes", scopes)
-                .endObject();
+                    .field("namespace", project);
+            }
+            payload.endObject();
             Request request = new Request.Builder()
-                    .url(String.format("%sapis/authorization.openshift.io/v1/namespaces/%s/localsubjectaccessreviews", client.getMasterUrl(), project))
+                    .url(String.format("%sapis/authorization.openshift.io/v1/subjectaccessreviews", client.getMasterUrl(), project))
                     .header(CONTENT_TYPE, APPLICATION_JSON)
                     .header(ACCEPT, APPLICATION_JSON)
                     .post(RequestBody.create(MediaType.parse(APPLICATION_JSON), payload.string()))
                     .build();
+            log(request);
             Response response = client.getHttpClient().newCall(request).execute();
+            final String body = IOUtils.toString(response.body().byteStream());
+            log(response, body);
             if(response.code() != RestStatus.CREATED.getStatus()) {
                 throw new ElasticsearchSecurityException("Unable to determine user's operations role", RestStatus.fromCode(response.code()));
             }
-            return JsonPath.read(response.body().byteStream(), "$.allowed");
+            return JsonPath.read(body, "$.allowed");
         } catch (IOException e) {
             LOGGER.error("Error determining user's role", e);
         }
         return false;
     }
+
+    private void log(Request request) {
+        if(!LOGGER.isDebugEnabled()) {
+            return;
+        }
+        try {
+            LOGGER.debug("Request: {}", request);
+            if(request.body() != null) {
+                Buffer sink = new Buffer();
+                request.body().writeTo(sink);
+                LOGGER.debug("Request body: {}", new String(sink.readByteArray()));
+            }
+        }catch(Exception e) {
+            LOGGER.error("Error trying to dump response", e);
+        }
+    }
+
+    private void log(Response response, String body) {
+        if(!LOGGER.isDebugEnabled()) {
+            return;
+        }
+        try {
+            LOGGER.debug("Response: {}", response);
+            LOGGER.debug("Response body: {}", body);
+        }catch(Exception e) {
+            LOGGER.error("Error trying to dump response", e);
+        }
+    }
     
-    DefaultOpenShiftClient buildClient(final String token) {
-        Config config = new ConfigBuilder().withOauthToken(token).build();
+    interface OpenShiftClientFactory {
+        default DefaultOpenShiftClient buildClient(final PluginSettings settings, final String token) {
+            Config config = new ConfigBuilder().withOauthToken(token).build();
 
-        if (settings.getMasterUrl() != null) {
-            config.setMasterUrl(settings.getMasterUrl());
-        }
-        if (settings.isTrustCerts() != null) {
-            config.setTrustCerts(settings.isTrustCerts());
-        }
-        if (settings.getOpenshiftCaPath() != null) {
-            config.setCaCertFile(settings.getOpenshiftCaPath());
-        }
-        LOGGER.debug("Target cluster is {}, trust cert is {}, ca path is {}",
-            config.getMasterUrl(), config.isTrustCerts(), config.getCaCertFile());
+            if (settings.getMasterUrl() != null) {
+                config.setMasterUrl(settings.getMasterUrl());
+            }
+            if (settings.isTrustCerts() != null) {
+                config.setTrustCerts(settings.isTrustCerts());
+            }
+            if (settings.getOpenshiftCaPath() != null) {
+                config.setCaCertFile(settings.getOpenshiftCaPath());
+            }
+            LOGGER.debug("Target cluster is {}, trust cert is {}, ca path is {}",
+                config.getMasterUrl(), config.isTrustCerts(), config.getCaCertFile());
 
-        return new DefaultOpenShiftClient(config);
+            return new DefaultOpenShiftClient(config);
+        }
+
     }
 }
