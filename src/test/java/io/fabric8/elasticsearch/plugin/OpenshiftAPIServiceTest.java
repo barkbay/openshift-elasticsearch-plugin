@@ -18,6 +18,7 @@ package io.fabric8.elasticsearch.plugin;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.mock;
@@ -112,7 +113,7 @@ public class OpenshiftAPIServiceTest {
         DefaultOpenShiftClient client = mock(DefaultOpenShiftClient.class);
         OpenShiftClientFactory factory = mock(OpenShiftClientFactory.class);
         Call call = mock(Call.class);
-        when(factory.buildClient(pluginSettings, anyString())).thenReturn(client);
+        when(factory.buildClient(eq(pluginSettings), anyString())).thenReturn(client);
         when(client.getHttpClient()).thenReturn(okClient);
         when(client.getMasterUrl()).thenReturn(new URL("https://localhost:8443/"));
         
@@ -146,7 +147,7 @@ public class OpenshiftAPIServiceTest {
         DefaultOpenShiftClient client = mock(DefaultOpenShiftClient.class);
         OpenShiftClientFactory factory = mock(OpenShiftClientFactory.class);
         Call call = mock(Call.class);
-        when(factory.buildClient(pluginSettings, anyString())).thenReturn(client);
+        when(factory.buildClient(eq(pluginSettings), anyString())).thenReturn(client);
         when(client.getHttpClient()).thenReturn(okClient);
         when(client.getMasterUrl()).thenReturn(new URL("https://localhost:8443/"));
         

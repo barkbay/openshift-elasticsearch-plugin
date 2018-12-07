@@ -72,7 +72,7 @@ public class OpenshiftClientFactoryTest {
         when(pluginSettings.isTrustCerts()).thenReturn(false);
 
         OpenshiftAPIService.OpenShiftClientFactory factory = new OpenshiftAPIService.OpenShiftClientFactory(){};
-        
+
         final NamespacedOpenShiftClient openShiftClient = factory.buildClient(pluginSettings, "foo");
         final Config k8sConfig = openShiftClient.getConfiguration();
 
